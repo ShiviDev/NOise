@@ -72,19 +72,14 @@ async function authorize() {
  */
 async function downloadFile(authClient) {
     const drive = google.drive({ version: 'v3', auth: authClient });
-    var fileId = '18z1EFaQTqpvY3PMVBKpJYlL2c5xucrED';
     try {
 
-        drive.files.get().then(function (rizzz) {
-            // rizz is resolved promise
-        })
         const file = await drive.files.get({
-            fileId: fileId,
+            fileId: '1RK5S_q89u5SL426NEzHKXE8AazF9Znzi',
             alt: 'media',
         }, { responseType: 'stream' });
 
         const type = file.headers['content-type'];
-        console.log(type);
         const extension = type.substring(type.indexOf("/") + 1);
 
         // use the below lines to use streams

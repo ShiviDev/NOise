@@ -11,14 +11,17 @@ const process = require('process');
 const { authenticate } = require('@google-cloud/local-auth');
 const { google } = require('googleapis');
 
-const vid = "https://drive.google.com/file/d/1X-oqYaY0cQOkOln10BNgvJBrXixE5t2c/view?usp=share_link";
+let url = "https://drive.google.com/file/d/1RK5S_q89u5SL426NEzHKXE8AazF9Znzi/view?usp=share_link";
+
 
 //////////////////////////////////////////////BULL-REDIS/////////////////////////////////////////////////////
 
 const videoQueue = new Queue('video-queue');
 
 videoQueue.process((job, done) => {
-    return authorize().then(downloadFile(job.data.vidurl)).catch(console.error);
+    console.log("reached");
+    url = job.data.vidurl;
+    return authorize().then(downloadFile).catch(console.error);
 })
 
 ////////////////////////////////////////////////EXPRESS SETUP///////////////////////////////////////////////////
@@ -108,28 +111,33 @@ async function authorize() {
  * Lists the names and IDs of up to 10 files.
  * @param {OAuth2Client} authClient An authorized OAuth2 client.
  */
-async function downloadFile(authClient, url) {
+async function downloadFile(authClient) {
+
+    const id = url.substring(url.indexOf('/d/') + 3, url.indexOf('/', url.indexOf('/d/') + 3))
     const drive = google.drive({ version: 'v3', auth: authClient });
 
+    console.log(id);
+
+
+    console.log("reached downloadfile");
     try {
 
-        drive.files.get().then(function (rizzz) {
-            // rizz is resolved promise
-        })
         const file = await drive.files.get({
-            fileId: url,
+            fileId: id,
             alt: 'media',
         }, { responseType: 'stream' });
 
-        // const type = file.headers['content-type'];
-        // console.log(type);
-        // const extension = type.substring(type.indexOf("/") + 1);
+        const type = file.headers['content-type'];
+        console.log(type);
+        const extension = type.substring(type.indexOf("/") + 1);
 
         // use the below lines to use streams
-        // const writer = fsnormal.createWriteStream("./dummy." + extension);
-        const streamObj = file.data;
-        // bufferObj.pipe(writer);
+        const writer = fsnormal.createWriteStream("./dummy." + extension);
+        console.log("got streamObj");
 
+        const streamObj = file.data;
+        streamObj.pipe(writer);
+        console.log(streamObj);
         // pass this stream obj to func
         handleffmpeg(streamObj);
 
@@ -146,21 +154,29 @@ async function downloadFile(authClient, url) {
 
 
 function handleffmpeg(streamObj) {
-    var command = ffmpeg(streamObj).noAudio().output('outputfile.mp4');
-}
-// const executeFfmpeg = args => {
-//     let command = fluent().output(' '); // pass "Invalid output" validation
-//     command._outputs[0].isFile = false; // disable adding "-y" argument
-//     command._outputs[0].target = ""; // bypass "Unable to find a suitable output format for ' '"
-//     command._global.get = () => { // append custom arguments
-//         return typeof args === "string" ? args.split(' ') : args;
-//     };
-//     return command;
-// };
+    console.log("handleffmpeg reached");
 
-// executeFfmpeg('-i vid.mp4 -af "highpass=f=200,lowpass=f=3000,afftdn=nf=-25" output.mp4')
-//     .on('start', commandLine => console.log('start', commandLine))
-//     .on('codecData', codecData => console.log('codecData', codecData))
-//     .on('error', error => console.log('error', error))
-//     .on('stderr', stderr => console.log('stderr', stderr))
-//     .run();
+    // setup execffmpeg
+    const executeFfmpeg = args => {
+        let command = fluent().output(' '); // pass "Invalid output" validation
+        command._outputs[0].isFile = false; // disable adding "-y" argument
+        command._outputs[0].target = ""; // bypass "Unable to find a suitable output format for ' '"
+        command._global.get = () => { // append custom arguments
+            return typeof args === "string" ? args.split(' ') : args;
+        };
+        return command;
+    };
+
+    try {
+        executeFfmpeg('-i dummy.mp4 -af "highpass=f=200,lowpass=f=3000,afftdn=nf=-25" output.mp4')
+            .on('start', commandLine => console.log('start', commandLine))
+            .on('codecData', codecData => console.log('codecData', codecData))
+            .on('error', error => console.log('error', error))
+            .on('stderr', stderr => console.log('stderr', stderr))
+            .run();
+        // var command = ffmpeg("./dummy.mp4").noAudio().output('outputfile.mp4');
+    } catch (err) {
+        console.log(err);
+    }
+}
+

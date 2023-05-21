@@ -1,8 +1,3 @@
-const ffmpeg = require('child_process').exec;
-
-try {
-    ffmpeg('ffmpeg -i "vid.mp4" -af "highpass=f=200 lowpass=f=3000,afftdn=nf=-25" output-video.mp4');
-    console.log('done processing');
-} catch (e) {
-    console.log(e);
-}
+const url = "https://drive.google.com/file/d/1X-oqYaY0cQOkOln10BNgvJBrXixE5t2c/view?usp=share_link";
+const id = url.substring(url.indexOf('/d/') + 3, url.indexOf('/', url.indexOf('/d/') + 3))
+console.log(id);
