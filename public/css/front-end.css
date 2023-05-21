@@ -1,0 +1,16 @@
+button {
+    margin-top: 10px;
+}
+
+label {
+    margin-bottom: 2px;
+}
+
+.form-box {
+    border: 1px solid black;
+    width: 50%;
+    border-radius: 5px;
+    padding: 1%;
+    margin: 20px auto;
+    box-shadow: 5px;
+}
