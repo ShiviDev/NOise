@@ -19,9 +19,9 @@ let url = "https://drive.google.com/file/d/1RK5S_q89u5SL426NEzHKXE8AazF9Znzi/vie
 const videoQueue = new Queue('video-queue');
 
 videoQueue.process((job, done) => {
-    console.log("reached");
-    url = job.data.vidurl;
-    return authorize().then(downloadFile).catch(console.error);
+  console.log("reached");
+  url = job.data.vidurl;
+  return authorize().then(downloadFile).catch(console.error);
 })
 
 ////////////////////////////////////////////////EXPRESS SETUP///////////////////////////////////////////////////
@@ -32,19 +32,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 
-app.listen(3000, function () {
-    console.log("Running on port 3k");
+app.listen(3000, function() {
+  console.log("Running on port 3k");
 })
-app.get("/", function (req, res) {
-    res.sendFile(__dirname + "/front-end.html");
+app.get("/", function(req, res) {
+  res.sendFile(__dirname + "/front-end.html");
 })
 
-app.post("/", async function (req, res) {
-    let url = req.body.url;
-    console.log(url);
-    const job = await videoQueue.add({
-        vidurl: url
-    });
+app.post("/", async function(req, res) {
+  let url = req.body.url;
+  console.log(url);
+  const job = await videoQueue.add({
+    vidurl: url
+  });
 });
 
 ////////////////////////////////////////////GOOGLE DRIVE ACCESS SCRIPT///////////////////////////////////////////////////////
@@ -60,13 +60,13 @@ const CREDENTIALS_PATH = path.join(process.cwd(), 'credentials.json');
  * @return {Promise<OAuth2Client|null>}
  */
 async function loadSavedCredentialsIfExist() {
-    try {
-        const content = await fs.readFile(TOKEN_PATH);
-        const credentials = JSON.parse(content);
-        return google.auth.fromJSON(credentials);
-    } catch (err) {
-        return null;
-    }
+  try {
+    const content = await fs.readFile(TOKEN_PATH);
+    const credentials = JSON.parse(content);
+    return google.auth.fromJSON(credentials);
+  } catch (err) {
+    return null;
+  }
 }
 
 /**
@@ -76,16 +76,16 @@ async function loadSavedCredentialsIfExist() {
  * @return {Promise<void>}
  */
 async function saveCredentials(client) {
-    const content = await fs.readFile(CREDENTIALS_PATH);
-    const keys = JSON.parse(content);
-    const key = keys.installed || keys.web;
-    const payload = JSON.stringify({
-        type: 'authorized_user',
-        client_id: key.client_id,
-        client_secret: key.client_secret,
-        refresh_token: client.credentials.refresh_token,
-    });
-    await fs.writeFile(TOKEN_PATH, payload);
+  const content = await fs.readFile(CREDENTIALS_PATH);
+  const keys = JSON.parse(content);
+  const key = keys.installed || keys.web;
+  const payload = JSON.stringify({
+    type: 'authorized_user',
+    client_id: key.client_id,
+    client_secret: key.client_secret,
+    refresh_token: client.credentials.refresh_token,
+  });
+  await fs.writeFile(TOKEN_PATH, payload);
 }
 
 /**
@@ -93,18 +93,18 @@ async function saveCredentials(client) {
  *
  */
 async function authorize() {
-    let client = await loadSavedCredentialsIfExist();
-    if (client) {
-        return client;
-    }
-    client = await authenticate({
-        scopes: SCOPES,
-        keyfilePath: CREDENTIALS_PATH,
-    });
-    if (client.credentials) {
-        await saveCredentials(client);
-    }
+  let client = await loadSavedCredentialsIfExist();
+  if (client) {
     return client;
+  }
+  client = await authenticate({
+    scopes: SCOPES,
+    keyfilePath: CREDENTIALS_PATH,
+  });
+  if (client.credentials) {
+    await saveCredentials(client);
+  }
+  return client;
 }
 
 /**
@@ -113,40 +113,40 @@ async function authorize() {
  */
 async function downloadFile(authClient) {
 
-    const id = url.substring(url.indexOf('/d/') + 3, url.indexOf('/', url.indexOf('/d/') + 3))
-    const drive = google.drive({ version: 'v3', auth: authClient });
+  const id = url.substring(url.indexOf('/d/') + 3, url.indexOf('/', url.indexOf('/d/') + 3))
+  const drive = google.drive({ version: 'v3', auth: authClient });
 
-    console.log(id);
-
-
-    console.log("reached downloadfile");
-    try {
-
-        const file = await drive.files.get({
-            fileId: id,
-            alt: 'media',
-        }, { responseType: 'stream' });
-
-        const type = file.headers['content-type'];
-        console.log(type);
-        const extension = type.substring(type.indexOf("/") + 1);
-
-        // use the below lines to use streams
-        const writer = fsnormal.createWriteStream("./dummy." + extension);
-        console.log("got streamObj");
-
-        const streamObj = file.data;
-        streamObj.pipe(writer);
-        console.log(streamObj);
-        // pass this stream obj to func
-        handleffmpeg(streamObj);
+  console.log(id);
 
 
+  console.log("reached downloadfile");
+  try {
 
-    } catch (err) {
-        // TODO(developer) - Handle error
-        throw err;
-    }
+    const file = await drive.files.get({
+      fileId: id,
+      alt: 'media',
+    }, { responseType: 'stream' });
+
+    const type = file.headers['content-type'];
+    console.log(type);
+    const extension = type.substring(type.indexOf("/") + 1);
+
+    // use the below lines to use streams
+    const writer = fsnormal.createWriteStream("./dummy." + extension);
+    console.log("got streamObj");
+
+    const streamObj = file.data;
+    streamObj.pipe(writer);
+    console.log(streamObj);
+    // pass this stream obj to func
+    handleffmpeg(streamObj);
+
+
+
+  } catch (err) {
+    // TODO(developer) - Handle error
+    throw err;
+  }
 }
 
 
@@ -154,29 +154,29 @@ async function downloadFile(authClient) {
 
 
 function handleffmpeg(streamObj) {
-    console.log("handleffmpeg reached");
+  console.log("handleffmpeg reached");
 
-    // setup execffmpeg
-    const executeFfmpeg = args => {
-        let command = fluent().output(' '); // pass "Invalid output" validation
-        command._outputs[0].isFile = false; // disable adding "-y" argument
-        command._outputs[0].target = ""; // bypass "Unable to find a suitable output format for ' '"
-        command._global.get = () => { // append custom arguments
-            return typeof args === "string" ? args.split(' ') : args;
-        };
-        return command;
+  // setup execffmpeg
+  const executeFfmpeg = args => {
+    let command = fluent().output(' '); // pass "Invalid output" validation
+    command._outputs[0].isFile = false; // disable adding "-y" argument
+    command._outputs[0].target = ""; // bypass "Unable to find a suitable output format for ' '"
+    command._global.get = () => { // append custom arguments
+      return typeof args === "string" ? args.split(' ') : args;
     };
+    return command;
+  };
 
-    try {
-        executeFfmpeg('-i dummy.mp4 -af "highpass=f=200,lowpass=f=3000,afftdn=nf=-25" output.mp4')
-            .on('start', commandLine => console.log('start', commandLine))
-            .on('codecData', codecData => console.log('codecData', codecData))
-            .on('error', error => console.log('error', error))
-            .on('stderr', stderr => console.log('stderr', stderr))
-            .run();
-        // var command = ffmpeg("./dummy.mp4").noAudio().output('outputfile.mp4');
-    } catch (err) {
-        console.log(err);
-    }
+  try {
+    executeFfmpeg('-i dummy.mp4 -af highpass=f=200,lowpass=f=3000,afftdn=nf=-25 output.mp4')
+      .on('start', commandLine => console.log('start', commandLine))
+      .on('codecData', codecData => console.log('codecData', codecData))
+      .on('error', error => console.log('error', error))
+      .on('stderr', stderr => console.log('stderr', stderr))
+      .run();
+    // var command = ffmpeg("./dummy.mp4").noAudio().output('outputfile.mp4');
+  } catch (err) {
+    console.log(err);
+  }
 }
 
