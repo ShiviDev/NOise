@@ -1,11 +1,14 @@
 # NOise
+
 - It is a web app to remove noise from the videos.
 
 ## Implementaions
+
 - Google APIs
 - Redis
 - Bull
 - ffmpeg
+- MongoDB
 
 ## Description/Explanation
 
