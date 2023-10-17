@@ -4,6 +4,7 @@ const fluent = require('fluent-ffmpeg');
 const Queue = require('bull');
 
 //////////////////////////google rquires///////////////////////////////////////
+
 const fs = require('fs').promises;
 const fsnormal = require('fs');
 const path = require('path');
@@ -32,17 +33,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 
-app.listen(3000, function() {
+app.listen(3000, function () {
   console.log("Running on port 3k");
 })
-app.get("/", function(req, res) {
+app.get("/", function (req, res) {
   res.sendFile(__dirname + "/front-end.html");
 })
 
-app.post("/", async function(req, res) {
+app.post("/", async function (req, res) {
   let url = req.body.url;
   console.log(url);
-  const job = await videoQueue.add({
+  await videoQueue.add({
     vidurl: url
   });
 });

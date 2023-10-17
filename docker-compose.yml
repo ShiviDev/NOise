@@ -1,0 +1,22 @@
+services:
+  redis:
+    container_name: redis
+    image: redis:latest
+    ports:
+      - '6379:6379'
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    ports:
+      - '27017:27017'
+    volumes:
+      - type: bind
+        source: ./test
+        target: /data/db
+  mongogui:
+    container_name: mongogui
+    image: samueltallet/mongodb-php-gui
+    ports:
+      - '5000:5000'
+    depends_on:
+      - mongodb
