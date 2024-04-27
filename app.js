@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const fluent = require('fluent-ffmpeg');
 const Queue = require('bull');
-
+var Minio = require('minio')
 //////////////////////////google rquires///////////////////////////////////////
 
 const fs = require('fs').promises;
@@ -14,7 +14,16 @@ const { google } = require('googleapis');
 
 let url = "https://drive.google.com/file/d/1RK5S_q89u5SL426NEzHKXE8AazF9Znzi/view?usp=share_link";
 
+//////////////////////////////////////////////MINIO/////////////////////////////////////////////////////
 
+
+var minioClient = new Minio.Client({
+  endPoint: 'localhost',
+  port: 9000,
+  useSSL: false,
+  accessKey: 'root',
+  secretKey: 'root',
+})
 //////////////////////////////////////////////BULL-REDIS/////////////////////////////////////////////////////
 
 const videoQueue = new Queue('video-queue');
@@ -33,14 +42,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 
-app.listen(3000, function () {
+app.listen(3000, function() {
   console.log("Running on port 3k");
 })
-app.get("/", function (req, res) {
+app.get("/", function(req, res) {
   res.sendFile(__dirname + "/front-end.html");
 })
 
-app.post("/", async function (req, res) {
+app.post("/", async function(req, res) {
   let url = req.body.url;
   console.log(url);
   await videoQueue.add({
