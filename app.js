@@ -17,7 +17,7 @@ let url = "";
 //////////////////////////////////////////////MINIO/////////////////////////////////////////////////////
 var minioClient = new Minio.Client({
   endPoint: '127.0.0.1',
-  port: 9000,
+  port: 9010,
   useSSL: false,
   accessKey: 'root',
   secretKey: 'root123456',
