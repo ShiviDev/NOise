@@ -3,25 +3,22 @@ const bodyParser = require("body-parser");
 const fluent = require('fluent-ffmpeg');
 const Queue = require('bull');
 const generateUniqueId = require('generate-unique-id');
-var Minio = require('minio')
-const { File } = require('megajs')
+var Minio = require('minio');
+const { File } = require('megajs');
 const { MongoClient } = require("mongodb");
-
-const fs = require('fs').promises;
-const fsnormal = require('fs');
-const path = require('path');
-const process = require('process');
 
 let url = "";
 
 //////////////////////////////////////////////MINIO/////////////////////////////////////////////////////
+
 var minioClient = new Minio.Client({
-  endPoint: '127.0.0.1',
+  endPoint: 'minio',
   port: 9000,
   useSSL: false,
   accessKey: 'root',
   secretKey: 'root123456',
 })
+
 const BUCKET_NAME = "videos"
 
 function addFileToStorageBucket(fileStream, size, id, status, done) {
@@ -47,6 +44,7 @@ function downloadFileFromStorageBucket(id, done) {
   })
 
 }
+
 async function uploadProcessedFileToStorageBucket(videoId, done) {
   var metaData = {}
   const videoName = videoId.concat("_processed")
@@ -55,9 +53,10 @@ async function uploadProcessedFileToStorageBucket(videoId, done) {
   await updateDB(videoId)
   done()
 }
+
 //////////////////////////////////////////////BULL-REDIS/////////////////////////////////////////////////////
 
-const videoQueue = new Queue('video-queue');
+const videoQueue = new Queue('video-queue', 'redis://redis:6379');
 
 videoQueue.process(async (job, done) => {
   console.log("reached");
@@ -80,10 +79,10 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-
 app.listen(3000, function () {
   console.log("Running on port 3k");
 })
+
 app.get("/", function (req, res) {
   res.sendFile(__dirname + "/front-end.html");
 })
@@ -149,10 +148,10 @@ async function downloadFile(file, id, done) {
     throw err;
   }
 }
+
 //////////////////////////////////////////// MongoDB ///////////////////////////////////////////////////////
 
-const uri = "mongodb://root:root@localhost:27017";
-
+const uri = "mongodb://root:root@mongodb:27017";
 
 async function readDB(id) {
   const client = new MongoClient(uri);
@@ -208,7 +207,6 @@ async function updateDB(id) {
 
 //////////////////////////////////////////// FFMPEG ///////////////////////////////////////////////////////
 
-
 function handleffmpeg(inputFile, done) {
   console.log("handleffmpeg reached");
 
@@ -244,4 +242,3 @@ function handleffmpeg(inputFile, done) {
     console.log(err);
   }
 }
-
